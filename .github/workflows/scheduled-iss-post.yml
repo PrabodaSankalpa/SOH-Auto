@@ -1,0 +1,43 @@
+name: Scheduled ISS Post
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # runs at 07:00 UTC daily
+  workflow_dispatch: {}
+
+jobs:
+  post-iss:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Validate secrets
+        run: |
+          node -e "if(!process.env.FB_PAGE_ID||!process.env.FB_ACCESS_TOKEN){console.error('Missing FB_PAGE_ID or FB_ACCESS_TOKEN secrets'); process.exit(1)} else {console.log('Secrets present') }"
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_ACCESS_TOKEN: ${{ secrets.FB_ACCESS_TOKEN }}
+
+      - name: Run ISS poster
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_ACCESS_TOKEN: ${{ secrets.FB_ACCESS_TOKEN }}
+          # Set POST_TO_FACEBOOK=1 in repository secrets if you want the workflow to post.
+          POST_TO_FACEBOOK: ${{ secrets.POST_TO_FACEBOOK }}
+          # IGNORE_TLS optional: set to '1' if you must bypass certificate validation (not recommended)
+          IGNORE_TLS: ${{ secrets.IGNORE_TLS }}
+        run: node dist/index.js
