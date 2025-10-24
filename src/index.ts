@@ -39,10 +39,9 @@ async function fetchISSData(): Promise<ISSData> {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Generate dynamic MAP_URL with current date (or use env var for custom date)
+// Generate dynamic MAP_URL with current date (always uses today's date)
 function getMapUrl(): string {
-    const customDate = process.env.MAP_DATE; // Optional: set MAP_DATE=2024-10-22 to override
-    const date = customDate || new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format (always current date)
     return `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&CRS=EPSG:4326&STYLES=&FORMAT=image/jpeg&TIME=${date}&BBOX=-180,-90,180,90&WIDTH=4096&HEIGHT=2048`;
 }
 
